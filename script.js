@@ -13,22 +13,41 @@ let imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
 
 const OFFSET = 125 + PIXEL_SIZE / 2;
 
-const vertex_table = [
-    [CENTER + OFFSET, CENTER + OFFSET, CENTER + OFFSET],
-    [CENTER + OFFSET, CENTER - OFFSET, CENTER + OFFSET],
-    [CENTER - OFFSET, CENTER - OFFSET, CENTER + OFFSET],
-    [CENTER - OFFSET, CENTER + OFFSET, CENTER + OFFSET],
-    [CENTER + OFFSET, CENTER + OFFSET, CENTER - OFFSET],
-    [CENTER + OFFSET, CENTER - OFFSET, CENTER - OFFSET],
-    [CENTER - OFFSET, CENTER - OFFSET, CENTER - OFFSET],
-    [CENTER - OFFSET, CENTER + OFFSET, CENTER - OFFSET]    
-]
+const cube = {
+    vertex_table: [
+        [CENTER + OFFSET, CENTER + OFFSET, CENTER + OFFSET],
+        [CENTER + OFFSET, CENTER - OFFSET, CENTER + OFFSET],
+        [CENTER - OFFSET, CENTER - OFFSET, CENTER + OFFSET],
+        [CENTER - OFFSET, CENTER + OFFSET, CENTER + OFFSET],
+        [CENTER + OFFSET, CENTER + OFFSET, CENTER - OFFSET],
+        [CENTER + OFFSET, CENTER - OFFSET, CENTER - OFFSET],
+        [CENTER - OFFSET, CENTER - OFFSET, CENTER - OFFSET],
+        [CENTER - OFFSET, CENTER + OFFSET, CENTER - OFFSET]    
+    ],
 
-const edge_table = [
-    [0, 1], [1, 2], [2, 3], [3, 0],
-    [4, 5], [5, 6], [6, 7], [7, 4],
-    [0, 4], [1, 5], [2, 6], [3, 7]
-]
+    edge_table: [
+        [0, 1], [1, 2], [2, 3], [3, 0],
+        [4, 5], [5, 6], [6, 7], [7, 4],
+        [0, 4], [1, 5], [2, 6], [3, 7]
+    ]
+}
+
+const pyramid = {
+    vertex_table: [
+        [CENTER + OFFSET, CENTER + OFFSET, CENTER + OFFSET],
+        [CENTER + OFFSET, CENTER + OFFSET, CENTER - OFFSET],
+        [CENTER - OFFSET, CENTER + OFFSET, CENTER + OFFSET],
+        [CENTER - OFFSET, CENTER + OFFSET, CENTER - OFFSET],
+        [CENTER, CENTER - OFFSET, CENTER]   
+    ],
+
+    edge_table: [
+        [3, 1], [3, 2], [2, 0], [1, 0],
+        [0, 4], [1, 4], [2, 4], [3, 4]
+    ]
+}
+
+let current_figure = pyramid;
 
 const camera = {
     x: 248,
@@ -100,16 +119,12 @@ function rotateAroundX(vertex_table, radians) {
     return rotated_table;
 }
 
-function drawFigure(vertex_table, edge_table) {
-    drawVertices(vertex_table);
-    drawEdges(vertex_table, edge_table);
+function drawFigure(figure) {
+    drawVertices(getProgectVertexTable(figure.vertex_table));
+    drawEdges(getProgectVertexTable(figure.vertex_table), figure.edge_table);
 };
 
-drawFigure(getProgectVertexTable(vertex_table), edge_table); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-// strokeRect(x, y, ширина, высота) // Рисует прямоугольник
-// fillRect(x, y, ширина, высота)   // Рисует закрашенный прямоугольник
-// clearRect(x, y, ширина, высота)  // Очищает область на холсте размер с прямоугольник заданного размера
+drawFigure(current_figure);
 
 function multiply(a, b) {
     var aNumRows = a.length, aNumCols = a[0].length,
@@ -137,7 +152,7 @@ function multiply(a, b) {
     camera.z = this.value;
     distance.innerHTML = this.value;
     ctx.clearRect(1, 1, 490, 490);
-    drawFigure(getProgectVertexTable(vertex_table), edge_table);
+    drawFigure(current_figure);
   })
 
   const btn = document.querySelector('#btn')
