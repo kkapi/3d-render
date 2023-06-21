@@ -47,7 +47,11 @@ const pyramid = {
     ]
 }
 
-let current_figure = pyramid;
+const figures = {
+    current_figure: cube,
+    cube: cube,
+    pyramid: pyramid
+}
 
 const camera = {
     x: 248,
@@ -120,11 +124,12 @@ function rotateAroundX(vertex_table, radians) {
 }
 
 function drawFigure(figure) {
+    ctx.clearRect(1, 1, 490, 490);
     drawVertices(getProgectVertexTable(figure.vertex_table));
     drawEdges(getProgectVertexTable(figure.vertex_table), figure.edge_table);
 };
 
-drawFigure(current_figure);
+drawFigure(figures.current_figure);
 
 function multiply(a, b) {
     var aNumRows = a.length, aNumCols = a[0].length,
@@ -150,13 +155,20 @@ function multiply(a, b) {
 
   range.addEventListener('input', function() {
     camera.z = this.value;
-    distance.innerHTML = this.value;
-    ctx.clearRect(1, 1, 490, 490);
-    drawFigure(current_figure);
+    distance.innerHTML = this.value;    
+    drawFigure(figures.current_figure);
   })
 
   const btn = document.querySelector('#btn')
 
   btn.addEventListener('click', function() {
     ctx.clearRect(1, 1, 490, 490);
+  })
+
+  figureForm = document.querySelector('#figure')
+
+  figureForm.addEventListener('change', function() {
+    let figure = document.querySelector('input[name="figure"]:checked').value;
+    figures.current_figure = figures[figure];
+    drawFigure(figures.current_figure);    
   })
