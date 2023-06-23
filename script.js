@@ -133,6 +133,13 @@ camera_x.addEventListener('input', function () {
     drawFigure(figures.current_figure);
 })
 
+const camera_y = document.querySelector('#camera_y')
+
+camera_y.addEventListener('input', function () {
+    camera.y = Number(this.value);    
+    drawFigure(figures.current_figure);
+})
+
 
 const btn = document.querySelector('#btn')
 
