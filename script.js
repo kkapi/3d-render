@@ -14,25 +14,6 @@ const OFFSET = 125 + PIXEL_SIZE / 2;
 
 const cube = {
     vertex_table: [
-        [CENTER + OFFSET, CENTER + OFFSET, CENTER + OFFSET],
-        [CENTER + OFFSET, CENTER - OFFSET, CENTER + OFFSET],
-        [CENTER - OFFSET, CENTER - OFFSET, CENTER + OFFSET],
-        [CENTER - OFFSET, CENTER + OFFSET, CENTER + OFFSET],
-        [CENTER + OFFSET, CENTER + OFFSET, CENTER - OFFSET],
-        [CENTER + OFFSET, CENTER - OFFSET, CENTER - OFFSET],
-        [CENTER - OFFSET, CENTER - OFFSET, CENTER - OFFSET],
-        [CENTER - OFFSET, CENTER + OFFSET, CENTER - OFFSET]
-    ],
-
-    edge_table: [
-        [0, 1], [1, 2], [2, 3], [3, 0],
-        [4, 5], [5, 6], [6, 7], [7, 4],
-        [0, 4], [1, 5], [2, 6], [3, 7]
-    ]
-}
-
-const zero_cube = {
-    vertex_table: [
         [0 + OFFSET, 0 + OFFSET, 0 + OFFSET],
         [0 + OFFSET, 0 - OFFSET, 0 + OFFSET],
         [0 - OFFSET, 0 - OFFSET, 0 + OFFSET],
@@ -52,11 +33,11 @@ const zero_cube = {
 
 const pyramid = {
     vertex_table: [
-        [CENTER + OFFSET, CENTER + OFFSET, CENTER + OFFSET],
-        [CENTER + OFFSET, CENTER + OFFSET, CENTER - OFFSET],
-        [CENTER - OFFSET, CENTER + OFFSET, CENTER + OFFSET],
-        [CENTER - OFFSET, CENTER + OFFSET, CENTER - OFFSET],
-        [CENTER, CENTER - OFFSET, CENTER]
+        [0 + OFFSET, 0 + OFFSET, 0 + OFFSET],
+        [0 + OFFSET, 0 + OFFSET, 0 - OFFSET],
+        [0 - OFFSET, 0 + OFFSET, 0 + OFFSET],
+        [0 - OFFSET, 0 + OFFSET, 0 - OFFSET],
+        [0, 0 - OFFSET, 0]
     ],
 
     edge_table: [
@@ -69,7 +50,9 @@ const figures = {
     current_figure: cube,
     cube: cube,
     pyramid: pyramid,
-    zero_cube: zero_cube
+    chosen_figure: cube,
+    x_radians: 0,
+    y_radians: 0
 }
 
 const camera = {
@@ -128,21 +111,28 @@ function getProgectVertexTable(vertex_table) {
 
 function drawFigure(figure) {
     ctx.clearRect(1, 1, 490, 490);
-    drawVertices(getProgectVertexTable(figure.vertex_table));
-    drawEdges(getProgectVertexTable(figure.vertex_table), figure.edge_table);
+    drawVertices(getProgectVertexTable(shiftCoordinates(figure.vertex_table)));
+    drawEdges(getProgectVertexTable(shiftCoordinates(figure.vertex_table)), figure.edge_table);
 };
 
 drawFigure(figures.current_figure);
-console.log(shiftCoordinates(figures.zero_cube.vertex_table));
 
-const range = document.querySelector('#range')
+const distance_range = document.querySelector('#distance_range')
 const distance = document.querySelector('.distance')
 
-range.addEventListener('input', function () {
-    camera.z = this.value;
+distance_range.addEventListener('input', function () {
+    camera.z = Number(this.value);
     distance.innerHTML = this.value;
     drawFigure(figures.current_figure);
 })
+
+const camera_x = document.querySelector('#camera_x')
+
+camera_x.addEventListener('input', function () {
+    camera.x = Number(this.value);    
+    drawFigure(figures.current_figure);
+})
+
 
 const btn = document.querySelector('#btn')
 
@@ -154,6 +144,7 @@ figureForm = document.querySelector('#figure')
 
 figureForm.addEventListener('change', function () {
     let figure = document.querySelector('input[name="figure"]:checked').value;
+    figures.chosen_figure = figures[figure];
     figures.current_figure = figures[figure];
     drawFigure(figures.current_figure);
 })
@@ -182,8 +173,8 @@ function rotateAroundX(vertex_table, radians) {
     ]
 
     for (let vertex of vertex_table) {
-        [x, y, z] = vertex;        
-        let res = multiply([[y, z]], rotation_matrix);        
+        [x, y, z] = vertex;
+        let res = multiply([[y, z]], rotation_matrix);
         rotated_table.push([x, ...res[0]])
     }
 
@@ -198,51 +189,96 @@ function rotateAroundY(vertex_table, radians) {
     ]
 
     for (let vertex of vertex_table) {
-        [x, y, z] = vertex;        
+        [x, y, z] = vertex;
         let res = multiply([[x, z]], rotation_matrix);
-        console.log(res)       
         rotated_table.push([res[0][0], y, res[0][1]])
     }
 
     return rotated_table;
 }
 
-let rotated_table = rotateAroundX(figures.zero_cube.vertex_table, 1.3);
-let shifted_table = rotated_table.map(row => row.map(value => value + CENTER));
-
-let rotated_cube = {
-    vertex_table: shifted_table,
-
-    edge_table: [
-        [0, 1], [1, 2], [2, 3], [3, 0],
-        [4, 5], [5, 6], [6, 7], [7, 4],
-        [0, 4], [1, 5], [2, 6], [3, 7]
+function rotateAroundZ(vertex_table, radians) {
+    let rotated_table = [];
+    let rotation_matrix = [
+        [Math.cos(radians), -Math.sin(radians)],
+        [Math.sin(radians), Math.cos(radians)]
     ]
+
+    for (let vertex of vertex_table) {
+        [x, y, z] = vertex;
+        let res = multiply([[x, y]], rotation_matrix);
+        rotated_table.push([...res[0], z])
+    }
+
+    return rotated_table;
 }
 
 const timer = ms => new Promise(res => setTimeout(res, ms))
 
-async function load() { // We need to wrap the loop into an async function for this to work
-    for (var i = 0; i > -1; i++) {
+// async function load(figure) { // We need to wrap the loop into an async function for this to work
+//     i = 0;
+//     while(true) {
 
-        let rotated_table = rotateAroundY(figures.zero_cube.vertex_table, i / 100);
-        rotated_table = rotateAroundX(rotated_table, i / 100);   
-        let shifted_table = rotated_table.map(row => row.map(value => value + CENTER));
+//         let rotated_table = rotateAroundX(figure.vertex_table, i / 100);
+//         i++;
+//         rotated_table = rotateAroundY(rotated_table, i / 100);  
+//         // rotated_table = rotateAroundZ(rotated_table, i / 100);        
 
-        let rotated_cube = {
-            vertex_table: shifted_table,
+//         let rotated_figure = {
+//             vertex_table: rotated_table,
 
-            edge_table: [
-                [0, 1], [1, 2], [2, 3], [3, 0],
-                [4, 5], [5, 6], [6, 7], [7, 4],
-                [0, 4], [1, 5], [2, 6], [3, 7]
-            ]
+//             edge_table: figure.edge_table
+//         }
+
+//         figures.current_figure = rotated_figure;
+//         drawFigure(rotated_figure);
+//         await timer(11); // then the created Promise can be awaited
+//     }
+// }
+
+let rotationFlag = false;
+
+async function test() { // We need to wrap the loop into an async function for this to work
+    i = 0;
+
+    let cur_fig = figures.chosen_figure;    
+
+    while(rotationFlag) {
+        
+        if (cur_fig !== figures.chosen_figure) {
+            cur_fig = figures.chosen_figure
+        };       
+
+        rotated_table = rotateAroundX(cur_fig.vertex_table, figures.x_radians);      
+        rotated_table = rotateAroundY(rotated_table, figures.y_radians);
+
+        figures.x_radians = i / 100;
+        figures.y_radians = i / 100;
+
+        i++;
+        // rotated_table = rotateAroundZ(rotated_table, i / 100);        
+
+        let rotated_figure = {
+            vertex_table: rotated_table,
+
+            edge_table: cur_fig.edge_table
         }
 
-        drawFigure(rotated_cube);
-        figures.current_figure = rotated_cube;
+        figures.current_figure = rotated_figure;
+        drawFigure(rotated_figure);
         await timer(11); // then the created Promise can be awaited
     }
 }
 
-// load();
+const rotateBtn = document.querySelector('#rotate_btn')
+
+rotateBtn.addEventListener('click', function() {
+    if (this.innerHTML === 'Вращать') {
+        rotationFlag = true;
+        test();
+        this.innerHTML = 'Остановить'        
+    } else {
+        rotationFlag = false;
+        this.innerHTML = 'Вращать'
+    }
+})

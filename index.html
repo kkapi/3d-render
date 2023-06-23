@@ -12,8 +12,10 @@
     <div class="container">
         <canvas height='500' width='500' id='canvas'>Обновите браузер</canvas>
     </div>
-    <input type="range" min="800" max="5000" step="100" id="range">
+    <input type="range" min="800" max="5000" step="100" id="distance_range">
     <span>Расстояние камеры до экрана: <span class="distance bold">2800</span></span>
+    <input type="range" min="0" max="496" step="20" id="camera_x">
+    <input type="range" min="0" max="496" step="20" id="camera_y">
     <button type="button" id="btn">Очистить экран</button>
     <form style="display: inline;" id="figure">
         <input type="radio" id="figureChoice1" name="figure" value="cube" checked="checked" />
@@ -22,6 +24,7 @@
         <input type="radio" id="figureChoice2" name="figure" value="pyramid" />
         <label for="figureChoice2">Пирамида</label>
     </form>
+    <button id="rotate_btn">Вращать</button>
     <script src="./script.js"></script>
 </body>
 
